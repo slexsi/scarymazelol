@@ -1,0 +1,15 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #222;
+    color: #fff;
+    text-align: center;
+}
+
+#game-container { position: relative; max-width: 600px; margin:auto; }
+#mazeCanvas { border: 2px solid white; background-color: #111; display: block; margin: auto; }
+#quiz-container { text-align:center; color:white; margin-top:20px; }
+#quiz-timer-bar { height:20px; background:red; width:100%; transition: width 0.1s linear; margin-bottom:10px; }
+button.correct{ background:green; color:white; }
+button.wrong{ background:red; color:white; }
+button{ display:block; margin:5px auto; padding:10px 20px; font-size:16px; cursor:pointer; }
+#game-info{ margin-top:10px; }
