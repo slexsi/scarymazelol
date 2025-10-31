@@ -1,32 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Jackenstein Maze Quiz</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div id="game-container">
+  <div id="game-wrapper">
     <canvas id="mazeCanvas" width="600" height="400"></canvas>
 
-    <div id="quiz-container" style="display:none;">
-        <p id="quiz-question"></p>
-        <div id="quiz-answers"></div>
-        <div id="quiz-timer-bar"></div>
-        <div id="quiz-score">Score: 0</div>
+    <!-- Quiz UI (hidden while playing) -->
+    <div id="quiz-container" class="overlay" style="display:none;">
+      <div class="quiz-box">
+        <p id="quiz-question" class="quiz-question"></p>
+        <div id="quiz-answers" class="quiz-answers"></div>
+        <div id="quiz-timer-bar" class="timer-bar"></div>
+        <div id="quiz-score" class="quiz-score">Score: 0</div>
+      </div>
     </div>
 
-    <div id="game-info">
-        <p>Keys Collected: <span id="keys-count">0</span> / <span id="keys-total">0</span></p>
-        <p>Total Score: <span id="total-score">0</span></p>
-        <p>Level: <span id="level-number">1</span></p>
+    <!-- Game over screen (hidden by default) -->
+    <div id="game-over-container" class="overlay" style="display:none;">
+      <img id="game-over-image" src="gameover.png" alt="Game Over" />
+      <div class="game-over-buttons">
+        <button id="restart-btn">Restart</button>
+      </div>
     </div>
-</div>
 
-<audio id="bg-song" src="song.mp3" loop></audio>
-<audio id="special-sfx" src="special-sfx.mp3"></audio>
+    <!-- Info -->
+    <div id="hud">
+      <div>Level: <span id="level-number">1</span></div>
+      <div>Keys: <span id="keys-count">0</span> / <span id="keys-total">0</span></div>
+      <div>Total Score: <span id="total-score">0</span></div>
+    </div>
+  </div>
 
-<script src="script.js"></script>
+  <!-- Audio -->
+  <audio id="bg-song" src="song.mp3" loop></audio>
+  <audio id="special-sfx" src="special-sfx.mp3"></audio>
+
+  <script src="script.js"></script>
 </body>
 </html>
