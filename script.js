@@ -13,6 +13,13 @@ const totalScoreEl = document.getElementById('total-score');
 const gameOverContainer = document.getElementById('game-over-container');
 const restartBtn = document.getElementById('restart-btn');
 
+// ====== IMAGES ======
+let playerImg = new Image(); playerImg.src = 'player.png';
+let enemyImg  = new Image(); enemyImg.src  = 'enemy.png';
+let keyImg    = new Image(); keyImg.src    = 'key.png';
+let wallImg   = new Image(); wallImg.src   = 'wall.png';
+
+// ====== GAME OBJECTS ======
 let player = { x:50, y:50, size:40, speed:3 };
 let enemy = { x:500, y:50, size:40, speed:1.5 };
 let key = { x:300, y:200, size:30, collected:false };
@@ -36,6 +43,17 @@ const quizQuestions = [
 ];
 
 let running = true;
+
+// ====== MAZE WALLS ======
+const walls = [
+  {x:0,y:0,w:600,h:20},    // top
+  {x:0,y:0,w:20,h:400},    // left
+  {x:0,y:380,w:600,h:20},  // bottom
+  {x:580,y:0,w:20,h:400},  // right
+  {x:100,y:100,w:20,h:200},// vertical inside
+  {x:250,y:50,w:20,h:150}, // vertical inside
+  {x:400,y:200,w:20,h:150} // vertical inside
+];
 
 // ======= CANVAS RESIZE =======
 function resizeCanvas(){
@@ -65,7 +83,10 @@ function movePlayer(){
   if(keysDown['ArrowDown'] || keysDown['s']) ny += player.speed;
   if(keysDown['ArrowLeft'] || keysDown['a']) nx -= player.speed;
   if(keysDown['ArrowRight'] || keysDown['d']) nx += player.speed;
-  player.x = nx; player.y = ny;
+
+  // Wall collision
+  if(!checkCollisionWall(nx, player.y)) player.x = nx;
+  if(!checkCollisionWall(player.x, ny)) player.y = ny;
 }
 
 function moveEnemy(){
@@ -78,7 +99,16 @@ function moveEnemy(){
   }
 }
 
-// ======= KEY COLLECTION =======
+// ======= COLLISIONS =======
+function rectsOverlap(r1,r2){
+  return !(r1.x+r1.w<r2.x || r1.x>r2.x+r2.w || r1.y+r1.h<r2.y || r1.y>r2.y+r2.h);
+}
+
+function checkCollisionWall(x,y){
+  const rect = {x:x,y:y,w:player.size,h:player.size};
+  return walls.some(w => rectsOverlap(rect, w));
+}
+
 function checkKey(){
   if(!key.collected && Math.abs(player.x - key.x) < 30 && Math.abs(player.y - key.y) < 30){
     key.collected = true;
@@ -89,12 +119,26 @@ function checkKey(){
 // ======= DRAW =======
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  // key
-  if(!key.collected){ ctx.fillStyle='gold'; ctx.fillRect(key.x,key.y,key.size,key.size); }
-  // player
-  ctx.fillStyle='cyan'; ctx.fillRect(player.x, player.y, player.size, player.size);
-  // enemy
-  ctx.fillStyle='red'; ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+
+  // Draw walls
+  walls.forEach(w=>{
+    if(wallImg.complete) ctx.drawImage(wallImg, w.x, w.y, w.w, w.h);
+    else { ctx.fillStyle='gray'; ctx.fillRect(w.x,w.y,w.w,w.h); }
+  });
+
+  // Draw key
+  if(!key.collected){
+    if(keyImg.complete) ctx.drawImage(keyImg,key.x,key.y,key.size,key.size);
+    else { ctx.fillStyle='gold'; ctx.fillRect(key.x,key.y,key.size,key.size); }
+  }
+
+  // Draw player
+  if(playerImg.complete) ctx.drawImage(playerImg,player.x,player.y,player.size,player.size);
+  else { ctx.fillStyle='cyan'; ctx.fillRect(player.x,player.y,player.size,player.size); }
+
+  // Draw enemy
+  if(enemyImg.complete) ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);
+  else { ctx.fillStyle='red'; ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size); }
 }
 
 // ======= GAME LOOP =======
