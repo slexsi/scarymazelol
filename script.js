@@ -6,7 +6,6 @@ const specialSFX = document.getElementById('special-sfx');
 
 const quizContainer = document.getElementById('quiz-container');
 const quizTab = document.getElementById('quiz-tab');
-const quizTabsButtons = document.getElementById('quiz-tabs-buttons');
 const timerBar = document.getElementById('quiz-timer-bar');
 const totalScoreEl = document.getElementById('total-score');
 
@@ -55,15 +54,16 @@ const walls = [
   {x:400,y:200,w:20,h:150} // vertical inside
 ];
 
-// ======= CANVAS RESIZE =======
+// ====== CANVAS RESIZE ======
+canvas.width = 600;
+canvas.height = 400;
+
 function resizeCanvas(){
-  const aspect = 600/400;
+  const aspect = canvas.width / canvas.height;
   let width = window.innerWidth - 40;
   let height = window.innerHeight - 100;
-  if(width/height > aspect) width = height*aspect;
-  else height = width/aspect;
-  canvas.width = 600;
-  canvas.height = 400;
+  if(width/height > aspect) width = height * aspect;
+  else height = width / aspect;
   canvas.style.width = width + 'px';
   canvas.style.height = height + 'px';
 }
@@ -75,7 +75,7 @@ window.addEventListener('load', () => {
 });
 document.addEventListener('click', ()=>{bgSong.play().catch(()=>{});},{once:true});
 
-// ======= MOVEMENT =======
+// ====== MOVEMENT ======
 function movePlayer(){
   if(quizActive) return;
   let nx = player.x, ny = player.y;
@@ -84,7 +84,6 @@ function movePlayer(){
   if(keysDown['ArrowLeft'] || keysDown['a']) nx -= player.speed;
   if(keysDown['ArrowRight'] || keysDown['d']) nx += player.speed;
 
-  // Wall collision
   if(!checkCollisionWall(nx, player.y)) player.x = nx;
   if(!checkCollisionWall(player.x, ny)) player.y = ny;
 }
@@ -99,7 +98,7 @@ function moveEnemy(){
   }
 }
 
-// ======= COLLISIONS =======
+// ====== COLLISIONS ======
 function rectsOverlap(r1,r2){
   return !(r1.x+r1.w<r2.x || r1.x>r2.x+r2.w || r1.y+r1.h<r2.y || r1.y>r2.y+r2.h);
 }
@@ -116,44 +115,43 @@ function checkKey(){
   }
 }
 
-// ======= DRAW =======
+// ====== DRAW ======
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Draw walls
+  // walls
   walls.forEach(w=>{
     if(wallImg.complete) ctx.drawImage(wallImg, w.x, w.y, w.w, w.h);
-    else { ctx.fillStyle='gray'; ctx.fillRect(w.x,w.y,w.w,w.h); }
+    else ctx.fillStyle='gray', ctx.fillRect(w.x,w.y,w.w,w.h);
   });
 
-  // Draw key
+  // key
   if(!key.collected){
     if(keyImg.complete) ctx.drawImage(keyImg,key.x,key.y,key.size,key.size);
-    else { ctx.fillStyle='gold'; ctx.fillRect(key.x,key.y,key.size,key.size); }
+    else ctx.fillStyle='gold', ctx.fillRect(key.x,key.y,key.size,key.size);
   }
 
-  // Draw player
+  // player
   if(playerImg.complete) ctx.drawImage(playerImg,player.x,player.y,player.size,player.size);
-  else { ctx.fillStyle='cyan'; ctx.fillRect(player.x,player.y,player.size,player.size); }
+  else ctx.fillStyle='cyan', ctx.fillRect(player.x,player.y,player.size,player.size);
 
-  // Draw enemy
+  // enemy
   if(enemyImg.complete) ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);
-  else { ctx.fillStyle='red'; ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size); }
+  else ctx.fillStyle='red', ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size);
 }
 
-// ======= GAME LOOP =======
-function loop(now){
+// ====== GAME LOOP ======
+function loop(){
   if(!running) return;
   movePlayer();
   moveEnemy();
   checkKey();
-  // check collision with enemy
   if(Math.hypot(player.x - enemy.x, player.y - enemy.y) < 28){ gameOver(); return; }
   draw();
   requestAnimationFrame(loop);
 }
 
-// ======= QUIZ FUNCTIONS =======
+// ====== QUIZ FUNCTIONS ======
 function startQuiz(){
   quizActive = true;
   currentQuizSet = quizQuestions.slice();
@@ -190,11 +188,12 @@ function startQuizTimer(){
   if(quizTimer) clearInterval(quizTimer);
   quizDuration = 8 + Math.random()*7;
   quizStartTime = Date.now();
+  specialSFX.played = false;
   timerBar.style.width = '100%';
   quizTimer = setInterval(()=>{
     let elapsed = (Date.now() - quizStartTime)/1000;
     timerBar.style.width = Math.max(0, 100-(elapsed/quizDuration*100)) + '%';
-    if(elapsed >= 5 && !specialSFX.played){ specialSFX.played=true; specialSFX.play(); }
+    if(elapsed >= 5 && !specialSFX.played){ specialSFX.played = true; specialSFX.play(); }
     if(elapsed>=quizDuration){ clearInterval(quizTimer); endQuiz(); }
   },50);
 }
@@ -206,14 +205,15 @@ function endQuiz(){
   resizeCanvas();
 }
 
-// ======= GAME OVER =======
+// ====== GAME OVER ======
 function gameOver(){
   running=false;
   canvas.style.display='none';
-  gameOverContainer.style.display='block';
+  gameOverContainer.style.display='flex';
   bgSong.pause();
 }
 
+// ====== RESTART ======
 restartBtn.addEventListener('click', ()=>{
   player = { x:50, y:50, size:40, speed:3 };
   enemy = { x:500, y:50, size:40, speed:1.5 };
@@ -226,4 +226,11 @@ restartBtn.addEventListener('click', ()=>{
   requestAnimationFrame(loop);
 });
 
-requestAnimationFrame(loop);
+// ====== START GAME AFTER IMAGES LOAD ======
+let imagesLoaded = 0;
+[playerImg, enemyImg, keyImg, wallImg].forEach(img=>{
+  img.onload = ()=>{
+    imagesLoaded++;
+    if(imagesLoaded === 4) requestAnimationFrame(loop);
+  };
+});
