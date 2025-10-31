@@ -16,9 +16,10 @@ const totalScoreEl = document.getElementById('total-score');
 const gameOverContainer = document.getElementById('game-over-container');
 const restartBtn = document.getElementById('restart-btn');
 
-// ====== IMAGES (player & enemy) ======
+// ====== IMAGES ======
 let playerImg = new Image(); playerImg.src = 'player.png';
-let enemyImg  = new Image(); enemyImg.src  = 'enemy.png';
+let enemyImg = new Image(); enemyImg.src = 'enemy.png';
+let imagesLoaded = 0;
 
 // ====== GAME OBJECTS ======
 let player = { x:50, y:50, size:40, speed:3 };
@@ -43,7 +44,7 @@ let currentQuestionIndex = 0;
 let currentLevel = 1;
 const maxLevel = 3;
 
-// ====== ONE KEY, 3 QUESTIONS ======
+// ====== QUIZ QUESTIONS PER LEVEL ======
 const quizQuestionsLevel = [
   [
     { question:"1 + 1 = ?", answers:["1","2","3"], correct:"2" },
@@ -62,17 +63,15 @@ const quizQuestionsLevel = [
   ]
 ];
 
-// ====== MAZE WALLS (same for simplicity) ======
+// ====== MAZE WALLS ======
 const walls = [
-  {x:0,y:0,w:600,h:20},    {x:0,y:0,w:20,h:400},
-  {x:0,y:380,w:600,h:20},  {x:580,y:0,w:20,h:400},
+  {x:0,y:0,w:600,h:20}, {x:0,y:0,w:20,h:400},
+  {x:0,y:380,w:600,h:20}, {x:580,y:0,w:20,h:400},
   {x:100,y:100,w:20,h:200}, {x:250,y:50,w:20,h:150},
   {x:400,y:200,w:20,h:150}
 ];
 
-// ====== CANVAS SETUP ======
-canvas.width = 600;
-canvas.height = 400;
+// ====== CANVAS RESIZE ======
 function resizeCanvas(){
   const aspect = canvas.width / canvas.height;
   let width = window.innerWidth-40;
@@ -123,6 +122,7 @@ function draw(){
 }
 
 // ====== GAME LOOP ======
+let running = true;
 function loop(){
   if(!running) return;
   movePlayer(); moveEnemy();
@@ -165,7 +165,7 @@ function startQuizTimer(){
   quizTimer=setInterval(()=>{
     let elapsed=(Date.now()-quizStartTime)/1000;
     timerBar.style.width=Math.max(0,100-(elapsed/quizDuration*100))+'%';
-    if(elapsed>=5 && !specialSFX.played){ specialSFX.played=true; specialSFX.play(); }
+    if(elapsed>=5 && !specialSFX.played){ specialSFX.played=true; specialSFX.currentTime=0; specialSFX.play().catch(()=>{}); }
     if(elapsed>=quizDuration){ clearInterval(quizTimer); endQuiz(); }
   },50);
 }
@@ -192,10 +192,14 @@ restartBtn.addEventListener('click',()=>{
   requestAnimationFrame(loop);
 });
 
-// ====== START GAME ======
-window.addEventListener('load',()=>{
-  resizeCanvas();
-  bgSong.volume=0.5;
-  bgSong.play().catch(()=>{});
-  requestAnimationFrame(loop);
-});
+// ====== START GAME AFTER IMAGES LOAD ======
+playerImg.onload = enemyImg.onload = () => {
+    imagesLoaded++;
+    if(imagesLoaded===2){
+        canvas.style.display = 'block';
+        resizeCanvas();
+        bgSong.volume = 0.5;
+        bgSong.play().catch(()=>{});
+        requestAnimationFrame(loop);
+    }
+};
