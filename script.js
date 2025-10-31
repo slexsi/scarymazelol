@@ -16,11 +16,9 @@ const totalScoreEl = document.getElementById('total-score');
 const gameOverContainer = document.getElementById('game-over-container');
 const restartBtn = document.getElementById('restart-btn');
 
-// ====== IMAGES ======
+// ====== IMAGES (player & enemy) ======
 let playerImg = new Image(); playerImg.src = 'player.png';
 let enemyImg  = new Image(); enemyImg.src  = 'enemy.png';
-let keyImg    = new Image(); keyImg.src    = 'key.png';
-let wallImg   = new Image(); wallImg.src   = 'wall.png';
 
 // ====== GAME OBJECTS ======
 let player = { x:50, y:50, size:40, speed:3 };
@@ -56,9 +54,9 @@ const walls = [
   {x:0,y:0,w:20,h:400},    // left
   {x:0,y:380,w:600,h:20},  // bottom
   {x:580,y:0,w:20,h:400},  // right
-  {x:100,y:100,w:20,h:200},// vertical inside
-  {x:250,y:50,w:20,h:150}, // vertical inside
-  {x:400,y:200,w:20,h:150} // vertical inside
+  {x:100,y:100,w:20,h:200},
+  {x:250,y:50,w:20,h:150},
+  {x:400,y:200,w:20,h:150}
 ];
 
 // ====== CANVAS SETUP ======
@@ -74,12 +72,6 @@ function resizeCanvas(){
   canvas.style.height = height + 'px';
 }
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('load', ()=>{
-  resizeCanvas();
-  bgSong.volume = 0.5;
-  bgSong.play().catch(()=>{});
-});
-document.addEventListener('click', ()=>{bgSong.play().catch(()=>{});},{once:true});
 
 // ====== MOVEMENT ======
 function movePlayer(){
@@ -125,23 +117,31 @@ function draw(){
 
   // walls
   walls.forEach(w=>{
-    if(wallImg.complete) ctx.drawImage(wallImg, w.x, w.y, w.w, w.h);
-    else ctx.fillStyle='gray', ctx.fillRect(w.x,w.y,w.w,w.h);
+    ctx.fillStyle='gray';
+    ctx.fillRect(w.x,w.y,w.w,w.h);
   });
 
   // key
   if(!key.collected){
-    if(keyImg.complete) ctx.drawImage(keyImg,key.x,key.y,key.size,key.size);
-    else ctx.fillStyle='gold', ctx.fillRect(key.x,key.y,key.size,key.size);
+    ctx.fillStyle='gold';
+    ctx.fillRect(key.x,key.y,key.size,key.size);
   }
 
   // player
-  if(playerImg.complete) ctx.drawImage(playerImg,player.x,player.y,player.size,player.size);
-  else ctx.fillStyle='cyan', ctx.fillRect(player.x,player.y,player.size,player.size);
+  if(playerImg.complete && playerImg.naturalWidth>0){
+    ctx.drawImage(playerImg,player.x,player.y,player.size,player.size);
+  } else {
+    ctx.fillStyle='cyan';
+    ctx.fillRect(player.x,player.y,player.size,player.size);
+  }
 
   // enemy
-  if(enemyImg.complete) ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);
-  else ctx.fillStyle='red', ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size);
+  if(enemyImg.complete && enemyImg.naturalWidth>0){
+    ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);
+  } else {
+    ctx.fillStyle='red';
+    ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size);
+  }
 }
 
 // ====== GAME LOOP ======
@@ -217,20 +217,4 @@ function gameOver(){
 restartBtn.addEventListener('click', ()=>{
   player = { x:50, y:50, size:40, speed:3 };
   enemy = { x:500, y:50, size:40, speed:1.5 };
-  key = { x:300, y:200, size:30, collected:false };
-  score = 0; totalScoreEl.textContent = 0;
-  running=true; gameOverContainer.style.display='none';
-  canvas.style.display='block';
-  resizeCanvas();
-  bgSong.currentTime=0; bgSong.play().catch(()=>{});
-  requestAnimationFrame(loop);
-});
-
-// ====== START GAME AFTER IMAGES LOAD ======
-let imagesLoaded = 0;
-[playerImg, enemyImg, keyImg, wallImg].forEach(img=>{
-  img.onload = ()=>{
-    imagesLoaded++;
-    if(imagesLoaded === 4) requestAnimationFrame(loop);
-  };
-});
+  key = { x:300,
