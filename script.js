@@ -51,6 +51,7 @@ levelNumberEl.textContent=currentLevel+1;
 keysCountEl.textContent=collectedKeys;
 totalScoreEl.textContent=totalScore;
 
+// Fetch quiz questions
 fetch('quiz.json').then(r=>r.json()).then(data=>quizQuestions=data).catch(err=>console.warn(err));
 
 function pickRandomQuestions(n){
@@ -60,7 +61,7 @@ function pickRandomQuestions(n){
   return pool.slice(0,Math.min(n,pool.length));
 }
 
-function rectsOverlap(r1,r2){return !(r1.x+r1.w<r2.x||r1.x>r2.x+r2.w||r1.y+r1.h<r2.y||r1.y>r2.y+r2.h);}
+function rectsOverlap(r1,r2){return !(r1.x+r1.w<r2.x||r1.x>r2.x+r2.w||r1.y+r1.h<r2.y||r1.y>r2.h);}
 function checkCollisionWall(x,y){const rect={x:x,y:y,w:player.size,h:player.size};return walls.some(w=>rectsOverlap(rect,w));}
 
 function movePlayer(){if(quizActive) return;let speed=3;let nx=player.x,ny=player.y;if(keysDown['ArrowUp']||keysDown['w']) ny-=speed;if(keysDown['ArrowDown']||keysDown['s']) ny+=speed;if(keysDown['ArrowLeft']||keysDown['a']) nx-=speed;if(keysDown['ArrowRight']||keysDown['d']) nx+=speed;if(!checkCollisionWall(nx,player.y)) player.x=nx;if(!checkCollisionWall(player.x,ny)) player.y=ny;checkCollisionKey();}
@@ -100,7 +101,7 @@ function restartGame(){
   currentLevel=0; walls=levels[currentLevel].walls; keys=JSON.parse(JSON.stringify(levels[currentLevel].keys));
   collectedKeys=0; keysCountEl.textContent=collectedKeys; keysTotalEl.textContent=keys.length; levelNumberEl.textContent=currentLevel+1;
   totalScore=0; totalScoreEl.textContent=totalScore; player=findSafeStart(walls); enemy={x:500,y:50,size:40,speed:1.5};
-  canvas.style.display='block'; gameOverContainer.style.display='none'; running=true; lastSpeedIncreaseTimestamp=performance.now(); requestAnimationFrame(loop);
+  canvas.style.display='block'; gameOverContainer.style.display='none'; running=true; lastSpeedIncreaseTimestamp=performance.now(); resizeCanvas(); requestAnimationFrame(loop);
   bgSong.currentTime=0; bgSong.play().catch(()=>{});
 }
 restartBtn.addEventListener('click',restartGame);
@@ -120,6 +121,7 @@ function startQuizForKey(kIndex){
   quizScore=0;
   quizContainer.style.display='flex';
   canvas.style.display='none';
+  resizeCanvas(); // FIX: keep canvas size correct
   setupQuizTabs();
   startQuizTimer();
 }
@@ -213,6 +215,7 @@ function endQuiz(){
   setTimeout(()=>{
     quizContainer.style.display='none';
     canvas.style.display='block';
+    resizeCanvas(); // FIX: keep canvas size after quiz
   },1200);
 
   if(collectedKeys>=keys.length){
