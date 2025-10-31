@@ -64,6 +64,23 @@ button.wrong{ background:#c23a3a; color:#fff; }
   transition:width 0.06s linear;
 }
 
+/* Tab buttons for quiz */
+.quiz-tabs-buttons{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.quiz-tabs-buttons button{
+  padding:6px 12px;
+  border-radius:6px;
+  border:0;
+  cursor:pointer;
+  background:#555;
+  color:white;
+}
+.quiz-tabs-buttons button.active{ background:#1aa34a; }
+
 /* Game over image full */
 #game-over-image{
   width:100%;
