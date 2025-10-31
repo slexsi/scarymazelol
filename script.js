@@ -5,66 +5,90 @@ const ctx = canvas.getContext("2d");
 
 // Player / Jackenstein
 let player = {x:50, y:50, size:40};
-let enemy = {x:500, y:50, size:40, speed:1.2};
+let enemy = {x:500, y:50, size:40, speed:1.5}; // Jackenstein speed
 
 const playerImg = new Image();
 playerImg.src = "player.png";
 const enemyImg = new Image();
 enemyImg.src = "enemy.png";
 
-// Maze walls
-const walls = [
-    {x:0,y:0,w:600,h:10}, {x:0,y:0,w:10,h:400}, {x:0,y:390,w:600,h:10}, {x:590,y:0,w:10,h:400},
-    {x:100,y:0,w:10,h:300}, {x:200,y:100,w:10,h:300}, {x:300,y:0,w:10,h:250}, {x:400,y:150,w:10,h:250},
-    {x:500,y:0,w:10,h:300}
+// ======================
+// --- Levels Setup ---
+const levels = [
+    { // Level 1
+        walls:[
+            {x:0,y:0,w:600,h:10},{x:0,y:0,w:10,h:400},{x:0,y:390,w:600,h:10},{x:590,y:0,w:10,h:400},
+            {x:100,y:0,w:10,h:300},{x:200,y:100,w:10,h:300},{x:300,y:0,w:10,h:250},{x:400,y:150,w:10,h:250},{x:500,y:0,w:10,h:300}
+        ],
+        keys:[
+            {x:50, y:350, size:30, collected:false},
+            {x:550, y:50, size:30, collected:false}
+        ]
+    },
+    { // Level 2
+        walls:[
+            {x:0,y:0,w:600,h:10},{x:0,y:0,w:10,h:400},{x:0,y:390,w:600,h:10},{x:590,y:0,w:10,h:400},
+            {x:50,y:50,w:10,h:300},{x:150,y:100,w:10,h:300},{x:250,y:0,w:10,h:250},{x:350,y:150,w:10,h:250},{x:450,y:0,w:10,h:300}
+        ],
+        keys:[
+            {x:60,y:360,size:30,collected:false},
+            {x:540,y:60,size:30,collected:false},
+            {x:300,y:350,size:30,collected:false}
+        ]
+    }
 ];
 
-// Keys
-let keys = [
-    {x:50, y:350, size:30, collected:false},
-    {x:550, y:50, size:30, collected:false}
-];
+let currentLevel = 0;
+let walls = levels[currentLevel].walls;
+let keys = levels[currentLevel].keys;
 let collectedKeys = 0;
 
-// Quiz
+// ======================
+// --- Quiz ---
 const quizQuestions = [
     {question:"2 + 2 = ?", answers:["3","4","5","6"], correct:"4"},
     {question:"Sky color?", answers:["Red","Blue","Green","Yellow"], correct:"Blue"},
     {question:"Capital of France?", answers:["Paris","Berlin","Rome","Madrid"], correct:"Paris"},
     {question:"5 * 3 = ?", answers:["15","10","20","13"], correct:"15"},
     {question:"Water freezes at ?", answers:["0°C","100°C","50°C","-1°C"], correct:"0°C"},
-    {question:"Sun rises from?", answers:["East","West","North","South"], correct:"East"}
+    {question:"Sun rises from?", answers:["East","West","North","South"], correct:"East"},
+    {question:"10 / 2 = ?", answers:["2","5","8","12"], correct:"5"},
+    {question:"Color of grass?", answers:["Blue","Yellow","Green","Red"], correct:"Green"},
+    {question:"Largest planet?", answers:["Earth","Mars","Jupiter","Venus"], correct:"Jupiter"}
 ];
 
-let quizActive = false;
-let currentQuizQuestions = [];
-let currentQuestionIndex = 0;
-let quizScore = 0;
+let quizActive=false;
+let currentQuizQuestions=[];
+let currentQuestionIndex=0;
+let quizScore=0;
 let quizTimer, quizDuration, quizStartTime;
 
-// DOM
+// ======================
+// --- DOM ---
 const quizContainer = document.getElementById("quiz-container");
 const questionEl = document.getElementById("quiz-question");
 const answersEl = document.getElementById("quiz-answers");
 const timerBar = document.getElementById("quiz-timer-bar");
 const scoreEl = document.getElementById("quiz-score");
 const keysCountEl = document.getElementById("keys-count");
+const keysTotalEl = document.getElementById("keys-total");
 const totalScoreEl = document.getElementById("total-score");
+const levelNumberEl = document.getElementById("level-number");
 
 const bgSong = document.getElementById("bg-song");
 const specialSFX = document.getElementById("special-sfx");
 
 // Start game
 bgSong.play();
+keysTotalEl.textContent = keys.length;
 requestAnimationFrame(gameLoop);
 
-// Movement
+// ======================
+// --- Movement ---
 const keysDown = {};
 document.addEventListener('keydown', e=>{keysDown[e.key]=true;});
 document.addEventListener('keyup', e=>{keysDown[e.key]=false;});
 
-// ======================
-// --- Game Functions ---
 function movePlayer(){
     if(quizActive) return;
     let speed=3;
@@ -81,18 +105,19 @@ function movePlayer(){
     checkCollisionKey();
 }
 
+// ======================
+// --- Enemy Movement (Ignores Walls) ---
 function moveEnemy(){
-    let dx=player.x-enemy.x;
-    let dy=player.y-enemy.y;
-    let dist=Math.hypot(dx,dy);
-    if(dist>0){
-        let moveX=(dx/dist)*enemy.speed;
-        let moveY=(dy/dist)*enemy.speed;
-        if(!checkCollisionWall(enemy.x+moveX, enemy.y)) enemy.x+=moveX;
-        if(!checkCollisionWall(enemy.x, enemy.y+moveY)) enemy.y+=moveY;
-    }
+    let dx = player.x - enemy.x;
+    let dy = player.y - enemy.y;
+    let dist = Math.hypot(dx, dy);
+    if(dist <= 0) return;
+    enemy.x += (dx/dist) * enemy.speed;
+    enemy.y += (dy/dist) * enemy.speed;
 }
 
+// ======================
+// --- Collision ---
 function checkCollisionWall(x,y){
     let rect={x:x,y:y,w:player.size,h:player.size};
     for(let w of walls){
@@ -116,7 +141,8 @@ function checkCollisionKey(){
     });
 }
 
-// Draw
+// ======================
+// --- Draw Maze ---
 function drawMaze(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     // walls
@@ -129,7 +155,8 @@ function drawMaze(){
     ctx.drawImage(enemyImg, enemy.x, enemy.y, enemy.size, enemy.size);
 }
 
-// Game Loop
+// ======================
+// --- Game Loop ---
 function gameLoop(){
     movePlayer();
     moveEnemy();
@@ -207,7 +234,20 @@ function endQuiz(){
     quizContainer.style.display="none";
     canvas.style.display="block";
     quizActive=false;
+
     if(collectedKeys >= keys.length){
-        alert("All keys collected! Total Score: "+totalScoreEl.textContent);
+        currentLevel++;
+        if(currentLevel<levels.length){
+            walls=levels[currentLevel].walls;
+            keys=levels[currentLevel].keys;
+            collectedKeys=0;
+            keysCountEl.textContent=collectedKeys;
+            keysTotalEl.textContent=keys.length;
+            levelNumberEl.textContent = currentLevel+1;
+            player.x=50; player.y=50;
+            enemy.x=500; enemy.y=50;
+        } else {
+            alert("All levels completed! Total Score: "+totalScoreEl.textContent);
+        }
     }
 }
