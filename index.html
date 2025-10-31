@@ -10,17 +10,16 @@
   <div id="game-wrapper">
     <canvas id="mazeCanvas" width="600" height="400"></canvas>
 
-    <!-- Quiz UI (hidden while playing) -->
+    <!-- Quiz UI -->
     <div id="quiz-container" class="overlay" style="display:none;">
       <div class="quiz-box">
-        <p id="quiz-question" class="quiz-question"></p>
-        <div id="quiz-answers" class="quiz-answers"></div>
+        <div id="quiz-tab" style="max-height:250px; overflow-y:auto;"></div>
         <div id="quiz-timer-bar" class="timer-bar"></div>
         <div id="quiz-score" class="quiz-score">Score: 0</div>
       </div>
     </div>
 
-    <!-- Game over screen (hidden by default) -->
+    <!-- Game over screen -->
     <div id="game-over-container" class="overlay" style="display:none;">
       <img id="game-over-image" src="gameover.png" alt="Game Over" />
       <div class="game-over-buttons">
@@ -28,7 +27,7 @@
       </div>
     </div>
 
-    <!-- Info -->
+    <!-- HUD -->
     <div id="hud">
       <div>Level: <span id="level-number">1</span></div>
       <div>Keys: <span id="keys-count">0</span> / <span id="keys-total">0</span></div>
