@@ -87,6 +87,7 @@ function draw(){
   if(enemyImg.complete) ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);else{ctx.fillStyle='crimson'; ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size);}
 }
 
+// ======== GAME OVER & RESTART ========
 function triggerGameOver(){
   running=false;
   bgSong.pause();
@@ -110,7 +111,9 @@ function findSafeStart(levelWalls){
   return start;
 }
 
-// TABBED QUIZ
+// ======== QUIZ FUNCTIONS ========
+let currentQuestionIndex=0;
+
 function startQuizForKey(kIndex){
   quizActive=true;
   currentQuizSet=pickRandomQuestions(3);
@@ -142,11 +145,11 @@ function showQuizQuestion(index){
   q.answers.forEach(a=>{
     const btn=document.createElement('button');
     btn.textContent=a;
-    btn.onclick=()=>answerQuestion(index,a);
+    if(quizActive) btn.onclick=()=>answerQuestion(index,a);
     if(q.userAnswer){
+      btn.disabled=true;
       if(a===q.correct) btn.classList.add('correct');
       else if(a===q.userAnswer) btn.classList.add('wrong');
-      btn.disabled=true;
     }
     quizTab.appendChild(btn);
   });
@@ -178,19 +181,56 @@ function startQuizTimer(){
 }
 
 function endQuiz(){
-  totalScore+=quizScore; totalScoreEl.textContent=totalScore; quizContainer.style.display='none';canvas.style.display='block';quizActive=false;
+  quizActive=false;
+  if(quizTimer) clearInterval(quizTimer);
+
+  currentQuizSet.forEach((q,i)=>{
+    if(!q.userAnswer) q.userAnswer=''; 
+  });
+
+  [...quizTabsButtons.children].forEach((btn,i)=>{
+    const q=currentQuizSet[i];
+    btn.textContent='Q'+(i+1);
+    if(q.userAnswer){
+      if(q.userAnswer===q.correct) btn.textContent+=' ✔';
+      else btn.textContent+=' ✖';
+    }
+  });
+
+  currentQuestionIndex=0;
+  showQuizQuestion(0);
+
+  quizScore=0;
+  currentQuizSet.forEach(q=>{
+    if(q.userAnswer===q.correct){
+      const elapsed=(Date.now()-quizStartTime)/1000;
+      quizScore+=Math.floor(100*(quizDuration/Math.max(0.001,elapsed)));
+    }
+  });
+  totalScore+=quizScore;
+  totalScoreEl.textContent=totalScore;
+
+  setTimeout(()=>{
+    quizContainer.style.display='none';
+    canvas.style.display='block';
+  },1200);
+
   if(collectedKeys>=keys.length){
     currentLevel++;
     if(currentLevel<levels.length){
-      walls=levels[currentLevel].walls; keys=JSON.parse(JSON.stringify(levels[currentLevel].keys)); 
+      walls=levels[currentLevel].walls; 
+      keys=JSON.parse(JSON.stringify(levels[currentLevel].keys)); 
       collectedKeys=0; keysCountEl.textContent=collectedKeys; keysTotalEl.textContent=keys.length; 
-      levelNumberEl.textContent=currentLevel+1; player=findSafeStart(walls); enemy={x:500,y:50,size:40,speed:1.5};
+      levelNumberEl.textContent=currentLevel+1; 
+      player=findSafeStart(walls); 
+      enemy={x:500,y:50,size:40,speed:1.5};
     } else{
       alert('All levels cleared! Final score: '+totalScore);
     }
   }
 }
 
+// ======== GAME LOOP ========
 function loop(now){
   if(!running) return;
   movePlayer();
@@ -200,5 +240,19 @@ function loop(now){
   draw();requestAnimationFrame(loop);
 }
 
-window.addEventListener('load', () => { bgSong.volume=0.5; bgSong.play().catch(()=>{}); });
-lastSpeedIncreaseTimestamp=performance.now(); requestAnimationFrame(loop);
+// ======== RESPONSIVE CANVAS ========
+function resizeCanvas(){
+  const aspect = 600/400;
+  let width = window.innerWidth - 40;
+  let height = window.innerHeight - 100;
+  if(width/height > aspect) width = height*aspect;
+  else height = width/aspect;
+  canvas.width = 600;
+  canvas.height = 400;
+  canvas.style.width = width+'px';
+  canvas.style.height = height+'px';
+}
+
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('load', ()=>{resizeCanvas(); bgSong.volume=0.5; bgSong.play().catch(()=>{});});
+requestAnimationFrame(loop);
