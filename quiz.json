@@ -1,0 +1,11 @@
+[
+  {"question":"2 + 2 = ?","answers":["3","4","5","6"],"correct":"4"},
+  {"question":"Sky color?","answers":["Red","Blue","Green","Yellow"],"correct":"Blue"},
+  {"question":"Capital of France?","answers":["Paris","Berlin","Rome","Madrid"],"correct":"Paris"},
+  {"question":"5 * 3 = ?","answers":["15","10","20","13"],"correct":"15"},
+  {"question":"Water freezes at ?","answers":["0°C","100°C","50°C","-1°C"],"correct":"0°C"},
+  {"question":"Sun rises from?","answers":["East","West","North","South"],"correct":"East"},
+  {"question":"10 / 2 = ?","answers":["2","5","8","12"],"correct":"5"},
+  {"question":"Color of grass?","answers":["Blue","Yellow","Green","Red"],"correct":"Green"},
+  {"question":"Largest planet?","answers":["Earth","Mars","Jupiter","Venus"],"correct":"Jupiter"}
+]
