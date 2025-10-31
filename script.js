@@ -52,7 +52,14 @@ keysCountEl.textContent=collectedKeys;
 totalScoreEl.textContent=totalScore;
 
 // Fetch quiz questions
-fetch('quiz.json').then(r=>r.json()).then(data=>quizQuestions=data).catch(err=>console.warn(err));
+fetch('quiz.json').then(r=>r.json()).then(data=>quizQuestions=data).catch(err=>{
+  console.warn("Quiz fetch failed, using dummy questions");
+  quizQuestions = [
+    {question:"1+1?", answers:["1","2","3"], correct:"2"},
+    {question:"Color of sky?", answers:["Blue","Red","Green"], correct:"Blue"},
+    {question:"Capital of France?", answers:["Paris","Rome","London"], correct:"Paris"}
+  ];
+});
 
 function pickRandomQuestions(n){
   if(quizQuestions.length===0) return [];
@@ -97,13 +104,35 @@ function triggerGameOver(){
   gameOverContainer.style.display='flex';
   gameOverContainer.style.zIndex = 1000;
 }
+
 function restartGame(){
-  currentLevel=0; walls=levels[currentLevel].walls; keys=JSON.parse(JSON.stringify(levels[currentLevel].keys));
-  collectedKeys=0; keysCountEl.textContent=collectedKeys; keysTotalEl.textContent=keys.length; levelNumberEl.textContent=currentLevel+1;
-  totalScore=0; totalScoreEl.textContent=totalScore; player=findSafeStart(walls); enemy={x:500,y:50,size:40,speed:1.5};
-  canvas.style.display='block'; gameOverContainer.style.display='none'; running=true; lastSpeedIncreaseTimestamp=performance.now(); resizeCanvas(); requestAnimationFrame(loop);
-  bgSong.currentTime=0; bgSong.play().catch(()=>{});
+  currentLevel = 0; 
+  walls = levels[currentLevel].walls; 
+  keys = JSON.parse(JSON.stringify(levels[currentLevel].keys));
+  collectedKeys = 0; 
+  keysCountEl.textContent = collectedKeys; 
+  keysTotalEl.textContent = keys.length; 
+  levelNumberEl.textContent = currentLevel + 1;
+
+  totalScore = 0; 
+  totalScoreEl.textContent = totalScore; 
+  player = findSafeStart(walls); 
+  enemy = {x:500, y:50, size:40, speed:1.5};
+
+  canvas.style.display = 'block'; 
+  resizeCanvas(); // FIX: canvas scaling
+  gameOverContainer.style.display = 'none';
+  
+  running = true; 
+  lastSpeedIncreaseTimestamp = performance.now();
+  requestAnimationFrame(loop);
+
+  // Restart music safely
+  bgSong.pause();
+  bgSong.currentTime = 0;
+  bgSong.play().catch(()=>{});
 }
+
 restartBtn.addEventListener('click',restartGame);
 
 function findSafeStart(levelWalls){
@@ -257,5 +286,14 @@ function resizeCanvas(){
 }
 
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('load', ()=>{resizeCanvas(); bgSong.volume=0.5; bgSong.play().catch(()=>{});});
+window.addEventListener('load', ()=>{
+  resizeCanvas();
+  bgSong.volume = 0.5;
+  bgSong.play().catch(()=>{});
+});
+
+document.addEventListener('click', ()=>{
+  bgSong.play().catch(()=>{});
+}, {once:true});
+
 requestAnimationFrame(loop);
