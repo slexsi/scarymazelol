@@ -1,33 +1,37 @@
+// ====== CANVAS & CONTEXT ======
 const canvas = document.getElementById('mazeCanvas');
 const ctx = canvas.getContext('2d');
 
+// ====== AUDIO ======
 const bgSong = document.getElementById('bg-song');
 const specialSFX = document.getElementById('special-sfx');
 
+// ====== QUIZ ELEMENTS ======
 const quizContainer = document.getElementById('quiz-container');
 const quizTab = document.getElementById('quiz-tab');
 const timerBar = document.getElementById('quiz-timer-bar');
 const totalScoreEl = document.getElementById('total-score');
 
+// ====== GAME OVER ======
 const gameOverContainer = document.getElementById('game-over-container');
 const restartBtn = document.getElementById('restart-btn');
 
-// Player & Enemy Images
+// ====== IMAGES (player & enemy) ======
 let playerImg = new Image(); playerImg.src = 'player.png';
 let enemyImg  = new Image(); enemyImg.src  = 'enemy.png';
 
-// Game objects
+// ====== GAME OBJECTS ======
 let player = { x:50, y:50, size:40, speed:3 };
 let enemy  = { x:500, y:50, size:40, speed:1.5 };
 let key    = { x:300, y:200, size:30, collected:false };
 let score  = 0;
 
-// Input
+// ====== INPUT ======
 let keysDown = {};
 document.addEventListener('keydown', e => keysDown[e.key] = true);
 document.addEventListener('keyup', e => keysDown[e.key] = false);
 
-// Quiz state
+// ====== QUIZ STATE ======
 let quizActive = false;
 let quizTimer = null;
 let quizDuration = 0;
@@ -35,40 +39,52 @@ let quizStartTime = 0;
 let currentQuizSet = [];
 let currentQuestionIndex = 0;
 
-const quizQuestions = [
-  { question:"1 + 1 = ?", answers:["1","2","3"], correct:"2" },
-  { question:"Color of sky?", answers:["Red","Green","Blue"], correct:"Blue" },
-  { question:"Capital of France?", answers:["Paris","London","Rome"], correct:"Paris" }
+// ====== LEVEL STATE ======
+let currentLevel = 1;
+const maxLevel = 3;
+
+// ====== ONE KEY, 3 QUESTIONS ======
+const quizQuestionsLevel = [
+  [
+    { question:"1 + 1 = ?", answers:["1","2","3"], correct:"2" },
+    { question:"Color of sky?", answers:["Red","Green","Blue"], correct:"Blue" },
+    { question:"Capital of France?", answers:["Paris","London","Rome"], correct:"Paris" }
+  ],
+  [
+    { question:"2 + 2 = ?", answers:["2","3","4"], correct:"4" },
+    { question:"Color of grass?", answers:["Blue","Green","Yellow"], correct:"Green" },
+    { question:"Capital of Italy?", answers:["Rome","Paris","Berlin"], correct:"Rome" }
+  ],
+  [
+    { question:"5 * 2 = ?", answers:["10","7","12"], correct:"10" },
+    { question:"Color of sun?", answers:["Yellow","Red","Green"], correct:"Yellow" },
+    { question:"Capital of Japan?", answers:["Tokyo","Kyoto","Osaka"], correct:"Tokyo" }
+  ]
 ];
 
-let running = true;
-
-// Maze walls
+// ====== MAZE WALLS (same for simplicity) ======
 const walls = [
-  {x:0,y:0,w:600,h:20},
-  {x:0,y:0,w:20,h:400},
-  {x:0,y:380,w:600,h:20},
-  {x:580,y:0,w:20,h:400},
-  {x:100,y:100,w:20,h:200},
-  {x:250,y:50,w:20,h:150},
+  {x:0,y:0,w:600,h:20},    {x:0,y:0,w:20,h:400},
+  {x:0,y:380,w:600,h:20},  {x:580,y:0,w:20,h:400},
+  {x:100,y:100,w:20,h:200}, {x:250,y:50,w:20,h:150},
   {x:400,y:200,w:20,h:150}
 ];
 
-// Canvas resize
+// ====== CANVAS SETUP ======
+canvas.width = 600;
+canvas.height = 400;
 function resizeCanvas(){
-  const aspect = 600/400;
+  const aspect = canvas.width / canvas.height;
   let width = window.innerWidth-40;
   let height = window.innerHeight-100;
   if(width/height > aspect) width = height*aspect;
   else height = width/aspect;
-  canvas.width = 600;
-  canvas.height = 400;
   canvas.style.width = width+'px';
   canvas.style.height = height+'px';
 }
 window.addEventListener('resize', resizeCanvas);
 
-// Movement
+// ====== MOVEMENT ======
 function movePlayer(){
   if(quizActive) return;
   let nx=player.x, ny=player.y;
@@ -86,12 +102,16 @@ function moveEnemy(){
   if(dist>0){ enemy.x+=(dx/dist)*enemy.speed; enemy.y+=(dy/dist)*enemy.speed; }
 }
 
-// Collisions
+// ====== COLLISIONS ======
 function rectsOverlap(r1,r2){ return !(r1.x+r1.w<r2.x||r1.x>r2.x+r2.w||r1.y+r1.h<r2.y||r1.y>r2.y+r2.h); }
 function checkCollisionWall(x,y){ const rect={x:x,y:y,w:player.size,h:player.size}; return walls.some(w=>rectsOverlap(rect,w)); }
-function checkKey(){ if(!key.collected && Math.abs(player.x-key.x)<30 && Math.abs(player.y-key.y)<30){ key.collected=true; startQuiz(); } }
+function checkKey(){
+  if(!key.collected && Math.abs(player.x-key.x)<30 && Math.abs(player.y-key.y)<30){
+    key.collected=true; startQuiz();
+  }
+}
 
-// Draw
+// ====== DRAW ======
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   walls.forEach(w=>{ ctx.fillStyle='gray'; ctx.fillRect(w.x,w.y,w.w,w.h); });
@@ -102,21 +122,19 @@ function draw(){
   else { ctx.fillStyle='red'; ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size); }
 }
 
-// Game loop
+// ====== GAME LOOP ======
 function loop(){
   if(!running) return;
-  movePlayer();
-  moveEnemy();
+  movePlayer(); moveEnemy();
   checkKey();
   if(Math.hypot(player.x-enemy.x,player.y-enemy.y)<28){ gameOver(); return; }
-  draw();
-  requestAnimationFrame(loop);
+  draw(); requestAnimationFrame(loop);
 }
 
-// Quiz functions
+// ====== QUIZ ======
 function startQuiz(){
   quizActive=true;
-  currentQuizSet=quizQuestions.slice();
+  currentQuizSet=quizQuestionsLevel[currentLevel-1].slice();
   currentQuestionIndex=0;
   quizContainer.style.display='flex';
   canvas.style.display='none';
@@ -124,14 +142,11 @@ function startQuiz(){
   showQuestion(0);
 }
 function showQuestion(index){
-  currentQuestionIndex=index;
-  quizTab.innerHTML='';
+  currentQuestionIndex=index; quizTab.innerHTML='';
   const q=currentQuizSet[index];
-  const p=document.createElement('p'); p.textContent=q.question;
-  quizTab.appendChild(p);
+  const p=document.createElement('p'); p.textContent=q.question; quizTab.appendChild(p);
   q.answers.forEach(a=>{
-    const btn=document.createElement('button');
-    btn.textContent=a;
+    const btn=document.createElement('button'); btn.textContent=a;
     btn.onclick=()=>answerQuestion(a);
     quizTab.appendChild(btn);
   });
@@ -145,10 +160,8 @@ function answerQuestion(ans){
 }
 function startQuizTimer(){
   if(quizTimer) clearInterval(quizTimer);
-  quizDuration=8+Math.random()*7;
-  quizStartTime=Date.now();
-  specialSFX.played=false;
-  timerBar.style.width='100%';
+  quizDuration=8+Math.random()*7; quizStartTime=Date.now();
+  specialSFX.played=false; timerBar.style.width='100%';
   quizTimer=setInterval(()=>{
     let elapsed=(Date.now()-quizStartTime)/1000;
     timerBar.style.width=Math.max(0,100-(elapsed/quizDuration*100))+'%';
@@ -156,29 +169,30 @@ function startQuizTimer(){
     if(elapsed>=quizDuration){ clearInterval(quizTimer); endQuiz(); }
   },50);
 }
-function endQuiz(){ quizActive=false; quizContainer.style.display='none'; canvas.style.display='block'; resizeCanvas(); }
+function endQuiz(){
+  quizActive=false; quizContainer.style.display='none'; canvas.style.display='block';
+  resizeCanvas(); 
+  if(currentLevel<maxLevel){
+    currentLevel++; key.collected=false; player.x=50; player.y=50; enemy.x=500; enemy.y=50;
+  }
+}
 
-// Game over
+// ====== GAME OVER ======
 function gameOver(){
-  running=false;
-  canvas.style.display='none';
-  gameOverContainer.style.display='flex';
+  running=false; canvas.style.display='none'; gameOverContainer.style.display='flex';
   bgSong.pause();
 }
 
-// Restart
+// ====== RESTART ======
 restartBtn.addEventListener('click',()=>{
-  player={ x:50,y:50,size:40,speed:3 };
-  enemy={ x:500,y:50,size:40,speed:1.5 };
-  key={ x:300,y:200,size:30,collected:false };
-  score=0; totalScoreEl.textContent=0;
-  running=true; gameOverContainer.style.display='none';
-  canvas.style.display='block';
+  player={x:50,y:50,size:40,speed:3}; enemy={x:500,y:50,size:40,speed:1.5};
+  key={x:300,y:200,size:30,collected:false}; score=0; totalScoreEl.textContent=0;
+  running=true; currentLevel=1; gameOverContainer.style.display='none'; canvas.style.display='block';
   bgSong.currentTime=0; bgSong.play().catch(()=>{});
   requestAnimationFrame(loop);
 });
 
-// Start game
+// ====== START GAME ======
 window.addEventListener('load',()=>{
   resizeCanvas();
   bgSong.volume=0.5;
