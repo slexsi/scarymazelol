@@ -1,15 +1,82 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #222;
-    color: #fff;
-    text-align: center;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#111;
+  color:#eee;
+  font-family:Inter, system-ui, Arial, sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding:24px;
+}
+#game-wrapper { max-width:640px; width:100%; position:relative; }
+#mazeCanvas { display:block; margin:0 auto; background:#0b0b0b; border:3px solid #222; box-shadow:0 6px 20px rgba(0,0,0,0.6); }
+
+/* HUD */
+#hud{ display:flex; justify-content:space-between; gap:12px; margin-top:10px; font-size:14px; color:#ddd; }
+
+/* Overlay / quiz */
+.overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,0.65);
+  z-index:40;
+}
+.quiz-box{
+  background: linear-gradient(180deg,#1b1b1b,#111);
+  padding:18px;
+  border-radius:12px;
+  width:90%;
+  max-width:520px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.7);
+  border:1px solid rgba(255,255,255,0.04);
+  text-align:center;
+}
+.quiz-question{ font-size:18px; margin:8px 0 14px; color:#fff; }
+.quiz-answers button{
+  display:block;
+  width:80%;
+  margin:8px auto;
+  padding:10px 12px;
+  font-size:16px;
+  border-radius:8px;
+  border:0;
+  cursor:pointer;
+}
+button.correct{ background:#1aa34a; color:#fff; }
+button.wrong{ background:#c23a3a; color:#fff; }
+
+/* Timer bar */
+.timer-bar{
+  height:12px;
+  width:100%;
+  background:#a00;
+  border-radius:6px;
+  margin-top:12px;
+  transition:width 0.06s linear;
 }
 
-#game-container { position: relative; max-width: 600px; margin:auto; }
-#mazeCanvas { border: 2px solid white; background-color: #111; display: block; margin: auto; }
-#quiz-container { text-align:center; color:white; margin-top:20px; }
-#quiz-timer-bar { height:20px; background:red; width:100%; transition: width 0.1s linear; margin-bottom:10px; }
-button.correct{ background:green; color:white; }
-button.wrong{ background:red; color:white; }
-button{ display:block; margin:5px auto; padding:10px 20px; font-size:16px; cursor:pointer; }
-#game-info{ margin-top:10px; }
+/* Game over image full */
+#game-over-image{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  max-width:640px;
+  max-height:480px;
+  border-radius:8px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.8);
+}
+.game-over-buttons{
+  position:absolute;
+  bottom:28px;
+  display:flex;
+  gap:12px;
+}
+#restart-btn{
+  padding:10px 16px; border-radius:8px; border:0; cursor:pointer;
+  background:#fff; color:#111; font-weight:600;
+}
