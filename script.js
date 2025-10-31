@@ -86,7 +86,14 @@ function draw(){
   if(enemyImg.complete) ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);else{ctx.fillStyle='crimson'; ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size);}
 }
 
-function triggerGameOver(){running=false;bgSong.pause();quizContainer.style.display='none';canvas.style.display='none';gameOverContainer.style.display='flex';}
+function triggerGameOver(){
+  running=false;
+  bgSong.pause();
+  canvas.style.display='none';
+  quizContainer.style.display='none';
+  gameOverContainer.style.display='flex';
+  gameOverContainer.style.zIndex = 1000;
+}
 function restartGame(){
   currentLevel=0; walls=levels[currentLevel].walls; keys=JSON.parse(JSON.stringify(levels[currentLevel].keys));
   collectedKeys=0; keysCountEl.textContent=collectedKeys; keysTotalEl.textContent=keys.length; levelNumberEl.textContent=currentLevel+1;
@@ -102,30 +109,73 @@ function findSafeStart(levelWalls){
   return start;
 }
 
-// quiz
-function startQuizForKey(kIndex){quizActive=true; currentQuizSet=pickRandomQuestions(3);currentQuestionIndex=0;quizScore=0;quizContainer.style.display='flex';canvas.style.display='none';renderQuizQuestion();}
+// Quiz
+function startQuizForKey(kIndex){
+  quizActive=true;
+  currentQuizSet=pickRandomQuestions(3);
+  currentQuestionIndex=0;
+  quizScore=0;
+  quizContainer.style.display='flex';
+  quizContainer.style.zIndex=999;
+  canvas.style.display='none';
+  renderQuizQuestion();
+}
+
 function renderQuizQuestion(){
   if(!currentQuizSet||currentQuestionIndex>=currentQuizSet.length){endQuiz();return;}
-  const q=currentQuizSet[currentQuestionIndex]; quizTab.innerHTML='';
+  const q=currentQuizSet[currentQuestionIndex]; 
+  quizTab.innerHTML='';
   const qEl=document.createElement('p'); qEl.textContent=q.question; quizTab.appendChild(qEl);
   for(const a of q.answers){const btn=document.createElement('button'); btn.textContent=a; btn.onclick=()=>handleAnswer(a); quizTab.appendChild(btn);}
   startQuizTimer(); scoreEl.textContent=`Score: ${quizScore}`;
 }
-function startQuizTimer(){if(quizTimer) clearInterval(quizTimer);quizDuration=8+Math.random()*7;quizStartTime=Date.now();specialSFX.played=false;timerBar.style.width='100%';
-quizTimer=setInterval(()=>{const elapsed=(Date.now()-quizStartTime)/1000; timerBar.style.width=Math.max(0,100-(elapsed/quizDuration*100))+'%';
-if(elapsed>=5&&!specialSFX.played){specialSFX.played=true;specialSFX.play();}
-if(elapsed>=quizDuration){clearInterval(quizTimer);handleAnswer(null);}},50);}
-function handleAnswer(answer){if(quizTimer) clearInterval(quizTimer);const q=currentQuizSet[currentQuestionIndex];const buttons=quizTab.querySelectorAll('button'); buttons.forEach(b=>{if(b.textContent===q.correct)b.classList.add('correct');else b.classList.add('wrong');});
-if(answer===q.correct){const elapsed=(Date.now()-quizStartTime)/1000;quizScore+=Math.floor(100*(quizDuration/Math.max(0.001,elapsed)));}currentQuestionIndex++;setTimeout(renderQuizQuestion,900);}
+
+function startQuizTimer(){
+  if(quizTimer) clearInterval(quizTimer);
+  quizDuration=8+Math.random()*7;
+  quizStartTime=Date.now();
+  specialSFX.played=false;
+  timerBar.style.width='100%';
+  quizTimer=setInterval(()=>{
+    const elapsed=(Date.now()-quizStartTime)/1000;
+    timerBar.style.width=Math.max(0,100-(elapsed/quizDuration*100))+'%';
+    if(elapsed>=5&&!specialSFX.played){specialSFX.played=true;specialSFX.play();}
+    if(elapsed>=quizDuration){clearInterval(quizTimer); handleAnswer(null);}
+  },50);
+}
+
+function handleAnswer(answer){
+  if(quizTimer) clearInterval(quizTimer);
+  const q=currentQuizSet[currentQuestionIndex];
+  const buttons=quizTab.querySelectorAll('button'); 
+  buttons.forEach(b=>{if(b.textContent===q.correct)b.classList.add('correct');else b.classList.add('wrong');});
+  if(answer===q.correct){const elapsed=(Date.now()-quizStartTime)/1000;quizScore+=Math.floor(100*(quizDuration/Math.max(0.001,elapsed)));}
+  currentQuestionIndex++;
+  setTimeout(renderQuizQuestion,900);
+}
+
 function endQuiz(){
   totalScore+=quizScore; totalScoreEl.textContent=totalScore; quizContainer.style.display='none';canvas.style.display='block';quizActive=false;
-  if(collectedKeys>=keys.length){currentLevel++; if(currentLevel<levels.length){walls=levels[currentLevel].walls; keys=JSON.parse(JSON.stringify(levels[currentLevel].keys)); collectedKeys=0; keysCountEl.textContent=collectedKeys; keysTotalEl.textContent=keys.length; levelNumberEl.textContent=currentLevel+1; player=findSafeStart(walls); enemy={x:500,y:50,size:40,speed:1.5};} else{alert('All levels cleared! Final score: '+totalScore);}}
+  if(collectedKeys>=keys.length){
+    currentLevel++;
+    if(currentLevel<levels.length){
+      walls=levels[currentLevel].walls; keys=JSON.parse(JSON.stringify(levels[currentLevel].keys)); 
+      collectedKeys=0; keysCountEl.textContent=collectedKeys; keysTotalEl.textContent=keys.length; 
+      levelNumberEl.textContent=currentLevel+1; player=findSafeStart(walls); enemy={x:500,y:50,size:40,speed:1.5};
+    } else{
+      alert('All levels cleared! Final score: '+totalScore);
+    }
+  }
 }
 
-function loop(now){if(!running) return; movePlayer(); moveEnemy();
-if(Math.hypot(player.x-enemy.x,player.y-enemy.y)<28){triggerGameOver();return;}
-if(!quizActive){if(now-lastSpeedIncreaseTimestamp>=speedIncreaseIntervalMs){enemy.speed+=speedIncreaseAmount;lastSpeedIncreaseTimestamp=now;}} else {lastSpeedIncreaseTimestamp=now-(speedIncreaseIntervalMs-(now-lastSpeedIncreaseTimestamp));}
-draw();requestAnimationFrame(loop);
+function loop(now){
+  if(!running) return;
+  movePlayer();
+  moveEnemy();
+  if(Math.hypot(player.x-enemy.x,player.y-enemy.y)<28){triggerGameOver();return;}
+  if(!quizActive){if(now-lastSpeedIncreaseTimestamp>=speedIncreaseIntervalMs){enemy.speed+=speedIncreaseAmount;lastSpeedIncreaseTimestamp=now;}} 
+  draw();requestAnimationFrame(loop);
 }
 
-bgSong.play().catch(()=>{}); lastSpeedIncreaseTimestamp=performance.now(); requestAnimationFrame(loop);
+window.addEventListener('load', () => { bgSong.volume=0.5; bgSong.play().catch(()=>{}); });
+lastSpeedIncreaseTimestamp=performance.now(); requestAnimationFrame(loop);
