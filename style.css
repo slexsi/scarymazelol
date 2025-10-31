@@ -20,11 +20,11 @@ body{
 .overlay{
   position:absolute;
   inset:0;
-  display:flex;
+  display:flex !important;
   justify-content:center;
   align-items:center;
-  background: rgba(0,0,0,0.75);
-  z-index:100;
+  background: rgba(0,0,0,0.85);
+  z-index:999;
   overflow:auto;
 }
 .quiz-box{
@@ -83,4 +83,9 @@ button.wrong{ background:#c23a3a; color:#fff; }
 #restart-btn{
   padding:10px 16px; border-radius:8px; border:0; cursor:pointer;
   background:#fff; color:#111; font-weight:600;
+}
+
+/* Game Over overlay above everything */
+#game-over-container{
+  z-index:1000 !important;
 }
