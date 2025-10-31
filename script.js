@@ -12,11 +12,45 @@ const totalScoreEl = document.getElementById('total-score');
 const gameOverContainer = document.getElementById('game-over-container');
 const restartBtn = document.getElementById('restart-btn');
 
-// Images
+// ====== IMAGES ======
 let playerImg = new Image(); playerImg.src = 'player.png';
 let enemyImg  = new Image(); enemyImg.src  = 'enemy.png';
 let keyImg    = new Image(); keyImg.src    = 'key.png';
 let wallImg   = new Image(); wallImg.src   = 'wall.png';
+
+let imagesLoaded = 0;
+[playerImg, enemyImg, keyImg, wallImg].forEach(img => {
+  img.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === 4) requestAnimationFrame(loop);
+  };
+});
+
+// ====== DRAW WITH IMAGES ======
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // walls
+  walls.forEach(w=>{
+    if(wallImg.complete) ctx.drawImage(wallImg, w.x, w.y, w.w, w.h);
+    else ctx.fillStyle='gray', ctx.fillRect(w.x,w.y,w.w,w.h);
+  });
+
+  // key
+  if(!key.collected){
+    if(keyImg.complete) ctx.drawImage(keyImg,key.x,key.y,key.size,key.size);
+    else ctx.fillStyle='gold', ctx.fillRect(key.x,key.y,key.size,key.size);
+  }
+
+  // player
+  if(playerImg.complete) ctx.drawImage(playerImg,player.x,player.y,player.size,player.size);
+  else ctx.fillStyle='cyan', ctx.fillRect(player.x,player.y,player.size,player.size);
+
+  // enemy
+  if(enemyImg.complete) ctx.drawImage(enemyImg,enemy.x,enemy.y,enemy.size,enemy.size);
+  else ctx.fillStyle='red', ctx.fillRect(enemy.x,enemy.y,enemy.size,enemy.size);
+}
+
 
 // Game objects
 let player = { x:50, y:50, size:40, speed:3 };
